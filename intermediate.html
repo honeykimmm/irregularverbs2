@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Verb Galaxy 중급">
+<meta name="theme-color" content="#080614">
+<title>Verb Galaxy — 중급</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  height: 100%;
+  background: #080614;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+#starCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+#app {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen { display: none; flex-direction: column; flex: 1; }
+.screen.active { display: flex; }
+
+/* ══ START ══ */
+#screen-start {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: 16px;
+}
+.logo-wrap { margin-bottom: 18px; }
+.logo-planet {
+  font-size: 60px;
+  display: block;
+  animation: planetSpin 6s linear infinite;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 20px rgba(160,100,255,0.7));
+}
+@keyframes planetSpin {
+  0%   { transform: rotate(-4deg) scale(1);   filter: drop-shadow(0 0 16px rgba(160,100,255,0.6)); }
+  25%  { transform: rotate(0deg) scale(1.04); filter: drop-shadow(0 0 28px rgba(160,100,255,0.9)); }
+  50%  { transform: rotate(4deg) scale(1);    filter: drop-shadow(0 0 16px rgba(160,100,255,0.6)); }
+  75%  { transform: rotate(0deg) scale(0.97); filter: drop-shadow(0 0 10px rgba(160,100,255,0.4)); }
+  100% { transform: rotate(-4deg) scale(1);   filter: drop-shadow(0 0 16px rgba(160,100,255,0.6)); }
+}
+.logo-title {
+  font-size: 26px; font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  text-shadow: 0 0 30px rgba(160,100,255,0.7);
+}
+.logo-subtitle { font-size: 13px; color: #8866aa; margin-bottom: 6px; }
+.logo-badge {
+  display: inline-block;
+  font-size: 11px; font-weight: 700;
+  color: #ddaaff;
+  background: #1a0a30;
+  border: 1px solid #6633aa;
+  padding: 3px 14px;
+  border-radius: 20px;
+}
+
+.info-card {
+  width: 100%;
+  background: #110820;
+  border: 1px solid #2a1540;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 16px 0 14px;
+  text-align: left;
+}
+.info-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.info-row:last-child { margin: 0; }
+.info-icon { font-size: 18px; min-width: 24px; margin-top: 1px; }
+.info-text { font-size: 13px; color: #9977bb; line-height: 1.6; }
+.info-text strong { color: #ffffff; }
+
+.section-label {
+  width: 100%;
+  font-size: 12px; font-weight: 700;
+  color: #8866aa;
+  text-align: left;
+  margin-bottom: 8px;
+}
+
+.qcount-row { display: flex; gap: 8px; width: 100%; margin-bottom: 18px; }
+.qcount-btn {
+  flex: 1;
+  padding: 11px 4px;
+  border-radius: 10px;
+  border: 2px solid #2a1540;
+  background: #110820;
+  color: #8866aa;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.qcount-btn.active {
+  border-color: #9955dd;
+  background: #1a0a30;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(153,85,221,0.35);
+}
+
+.start-btn {
+  width: 100%;
+  padding: 17px;
+  background: linear-gradient(135deg, #6622cc, #4411aa);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 18px; font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 20px rgba(102,34,204,0.45);
+  transition: all 0.15s;
+}
+.start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(102,34,204,0.55); }
+
+/* ══ HUD ══ */
+.hud {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: #110820;
+  border-radius: 12px;
+  border: 1px solid #2a1540;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.hud-title { font-size: 12px; font-weight: 700; color: #8866aa; white-space: nowrap; }
+.hp-row { display: flex; gap: 2px; }
+.hp { font-size: 14px; transition: all 0.2s; }
+.hp.dead { opacity: 0.2; filter: grayscale(1); }
+.prog-wrap { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.prog-label { font-size: 10px; color: #443355; text-align: right; }
+.prog-track { height: 5px; background: #1a0a2a; border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, #9933cc, #cc66ff); border-radius: 4px; transition: width 0.4s; }
+.score-pill {
+  font-size: 12px; font-weight: 700; color: #ddaaff;
+  background: #160826; border: 1px solid #6633aa;
+  padding: 2px 10px; border-radius: 20px; white-space: nowrap;
+}
+
+/* ══ PLANET BAR ══ */
+.planet-bar {
+  display: flex; align-items: flex-end; justify-content: center;
+  height: 88px; margin-bottom: 10px;
+  flex-shrink: 0;
+}
+.planet-slot { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.planet-emoji { transition: all 0.4s; line-height: 1; }
+.planet-name { font-size: 9px; color: #443355; margin-top: 3px; font-weight: 600; }
+.planet-slot.cur .planet-name { color: #ddaaff; }
+.dot-row { display: flex; gap: 3px; margin-top: 4px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #2a1540; }
+.dot.on { background: #bb66ff; }
+
+/* ══ QUESTION CARD ══ */
+.qcard {
+  background: #110820;
+  border: 2px solid #2a1540;
+  border-radius: 16px;
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.q-num { font-size: 11px; font-weight: 700; color: #443355; }
+.q-hint-count { font-size: 11px; color: #ffaa44; font-weight: 700; }
+
+.verb-area {
+  text-align: center;
+  padding: 12px 0 10px;
+  border-bottom: 1px solid #2a1540;
+  margin-bottom: 14px;
+}
+.verb-word { font-size: 40px; font-weight: 900; color: #ffffff; letter-spacing: 2px; }
+.verb-meaning { font-size: 14px; color: #9977bb; margin-top: 5px; }
+
+/* INPUT AREA */
+.input-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+.input-group { display: flex; flex-direction: column; gap: 4px; }
+.input-label { font-size: 11px; font-weight: 700; color: #8866aa; padding-left: 2px; }
+.verb-input {
+  width: 100%;
+  padding: 13px 14px;
+  background: #0d0520;
+  border: 2px solid #2a1540;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 18px; font-weight: 700;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  letter-spacing: 1px;
+  -webkit-text-fill-color: #ffffff;
+}
+.verb-input::placeholder { color: #3a2050; -webkit-text-fill-color: #3a2050; font-weight: 400; font-size: 14px; }
+.verb-input:focus { border-color: #9933cc; box-shadow: 0 0 0 3px rgba(153,51,204,0.2); }
+.verb-input.correct { border-color: #22aa66 !important; background: #051a10 !important; color: #44ffaa !important; -webkit-text-fill-color: #44ffaa !important; }
+.verb-input.wrong   { border-color: #aa2233 !important; background: #1a0508 !important; color: #ff8899 !important; -webkit-text-fill-color: #ff8899 !important; }
+
+.check-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #6622cc, #4411aa);
+  color: #ffffff;
+  border: none; border-radius: 10px;
+  font-size: 16px; font-weight: 900;
+  cursor: pointer; font-family: inherit;
+  letter-spacing: 1px;
+  box-shadow: 0 3px 14px rgba(102,34,204,0.35);
+  transition: all 0.12s;
+  margin-top: 2px;
+}
+.check-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(102,34,204,0.45); }
+.check-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+/* HINT */
+.hint-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.hint-btn {
+  padding: 6px 14px;
+  background: #1a0a30;
+  border: 1px solid #6633aa;
+  border-radius: 20px;
+  color: #ddaaff;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.12s;
+}
+.hint-btn:hover { background: #2a1540; }
+.hint-btn:disabled { opacity: 0.3; cursor: default; }
+.hint-text { font-size: 12px; color: #ffaa44; font-weight: 600; letter-spacing: 1px; }
+
+.feedback-row { min-height: 20px; text-align: center; font-size: 13px; font-weight: 700; color: #9977bb; margin-bottom: 6px; }
+
+.next-btn {
+  display: none;
+  width: 100%; padding: 12px;
+  background: linear-gradient(135deg, #6622cc, #4411aa);
+  color: #ffffff;
+  border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  margin-top: auto;
+}
+.next-btn:hover { background: linear-gradient(135deg, #7733dd, #5522bb); }
+
+/* ══ OVERLAYS ══ */
+.overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.overlay.show { display: flex; }
+
+/* UPGRADE */
+.upgrade-box {
+  background: linear-gradient(145deg, #120826, #080414);
+  border: 2px solid #9933cc;
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  max-width: 300px; width: 90%;
+  position: relative; overflow: hidden;
+  animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.up-label { font-size: 11px; font-weight: 700; color: #bb66ff; letter-spacing: 3px; margin-bottom: 10px; }
+.up-planet { font-size: 56px; display: block; margin: 8px 0; filter: drop-shadow(0 0 20px rgba(160,100,255,0.8)); }
+.up-name { font-size: 20px; font-weight: 900; color: #ffffff; margin-bottom: 6px; }
+.up-desc { font-size: 13px; color: #9977bb; margin-bottom: 22px; line-height: 1.6; }
+.up-btn {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #6622cc, #4411aa);
+  color: #ffffff; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.particle { position: absolute; width: 7px; height: 7px; border-radius: 50%; animation: pf 1.6s ease-out forwards; }
+@keyframes pf {
+  0%   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); }
+}
+
+/* MISSION COMPLETE */
+.mission-box {
+  text-align: center;
+  max-width: 380px; width: 94%;
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 4px;
+}
+.mc-glow { font-size: 56px; display: block; margin-bottom: 8px; animation: pulseGlow 1.5s ease-in-out infinite; }
+@keyframes pulseGlow {
+  0%,100% { filter: drop-shadow(0 0 14px #bb66ff); }
+  50%      { filter: drop-shadow(0 0 32px #cc88ff); }
+}
+.mc-label { font-size: 11px; font-weight: 700; color: #bb66ff; letter-spacing: 4px; margin-bottom: 6px; }
+.mc-title { font-size: 28px; font-weight: 900; color: #ffffff; margin-bottom: 4px; line-height: 1.2; }
+.mc-stars { font-size: 24px; letter-spacing: 3px; margin: 12px 0 4px; }
+.mc-score { font-size: 50px; font-weight: 900; color: #ddaaff; line-height: 1; }
+.mc-total { font-size: 14px; color: #9977bb; margin-bottom: 14px; }
+.mc-rank-box {
+  background: rgba(17,8,32,0.95);
+  border: 1px solid #2a1540;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.mc-rank { font-size: 17px; font-weight: 900; margin-bottom: 4px; }
+.mc-rank-desc { font-size: 12px; color: #9977bb; line-height: 1.6; }
+
+.mc-wrong-wrap {
+  background: rgba(17,8,32,0.95);
+  border: 1px solid #2a1540;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+  max-height: 150px;
+  overflow-y: auto;
+  text-align: left;
+}
+.mc-wrong-title { font-size: 11px; color: #443355; font-weight: 700; margin-bottom: 8px; }
+.wi { display: grid; grid-template-columns: 68px 12px 1fr auto; gap: 6px; align-items: center; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #160828; }
+.wi:last-child { border: none; }
+.wi-b { color: #ffffff; font-weight: 700; }
+.wi-arr { color: #443355; }
+.wi-a { color: #bb88ff; font-weight: 600; }
+.wi-m { color: #443355; font-size: 11px; text-align: right; }
+
+.mc-btns { display: flex; gap: 8px; }
+.mc-btn-home {
+  flex: 1; padding: 12px;
+  background: rgba(10,5,20,0.9);
+  color: #9977bb; border: 1.5px solid #2a1540;
+  border-radius: 10px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.mc-btn-home:hover { border-color: #9933cc; }
+.mc-btn-again {
+  flex: 2; padding: 12px;
+  background: linear-gradient(135deg, #6622cc, #4411aa);
+  color: #ffffff; border: none;
+  border-radius: 10px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #080614; }
+::-webkit-scrollbar-thumb { background: #2a1540; border-radius: 4px; }
+
+/* WRONG POPUP */
+.wrong-popup-box {
+  background: linear-gradient(145deg, #1a0520, #0d0318);
+  border: 2px solid #cc3355;
+  border-radius: 20px;
+  padding: 28px 24px;
+  text-align: center;
+  max-width: 320px; width: 92%;
+  animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 40px rgba(200,50,80,0.4);
+}
+.wp-label {
+  font-size: 11px; font-weight: 700;
+  color: #ff6680; letter-spacing: 3px; margin-bottom: 12px;
+}
+.wp-verb {
+  font-size: 36px; font-weight: 900; color: #ffffff;
+  letter-spacing: 2px; margin-bottom: 20px;
+}
+.wp-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-bottom: 16px;
+}
+.wp-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.wp-lbl { font-size: 10px; font-weight: 700; color: #8855aa; letter-spacing: 1px; }
+.wp-ans {
+  font-size: 26px; font-weight: 900; color: #ff99bb;
+  background: #2a0818; border: 1.5px solid #cc3355;
+  padding: 8px 18px; border-radius: 10px;
+  letter-spacing: 1px;
+}
+.wp-divider { font-size: 18px; color: #553366; font-weight: 700; padding-top: 18px; }
+.wp-mean { font-size: 14px; color: #9977bb; }
+</style>
+</head>
+<body>
+<canvas id="starCanvas"></canvas>
+<div id="app">
+
+  <!-- START -->
+  <section id="screen-start" class="screen active">
+    <div class="logo-wrap">
+      <span class="logo-planet">🪐</span>
+      <div class="logo-title">VERB GALAXY</div>
+      <div class="logo-subtitle">불규칙 동사 행성 탐사</div>
+      <span class="logo-badge">🪐 중급편</span>
+    </div>
+    <div class="info-card">
+      <div class="info-row">
+        <span class="info-icon">✍️</span>
+        <div class="info-text"><strong>과거형 + 과거분사 입력</strong> — 두 가지를 모두 직접 타이핑해요</div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">💡</span>
+        <div class="info-text"><strong>힌트 시스템</strong> — 막히면 힌트를 써요. 단, 점수는 절반만!</div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">🪐</span>
+        <div class="info-text"><strong>행성 탐사</strong> — 맞힐 때마다 새로운 행성을 발견해요!</div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">❤️</span>
+        <div class="info-text"><strong>HP 5개</strong> — 틀릴 때마다 감소. 총 20문제 기본!</div>
+      </div>
+    </div>
+    <div class="section-label">🎮 문항 수 선택</div>
+    <div class="qcount-row" id="qcount-row"></div>
+    <button class="start-btn" id="start-btn">🪐 탐사 시작!</button>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="screen">
+    <div class="hud">
+      <div class="hud-title">🪐 중급</div>
+      <div class="hp-row" id="hp-row"></div>
+      <div class="prog-wrap">
+        <div class="prog-label" id="prog-label">0 / 20</div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      </div>
+      <div class="score-pill" id="score-pill">⭐ 0</div>
+    </div>
+
+    <div class="planet-bar" id="planet-bar"></div>
+
+    <div class="qcard">
+      <div class="q-meta">
+        <div class="q-num" id="q-num">Q1 / 20</div>
+        <div class="q-hint-count" id="q-hint-count">💡 힌트 3개</div>
+      </div>
+      <div class="verb-area">
+        <div class="verb-word" id="verb-word">write</div>
+        <div class="verb-meaning" id="verb-meaning">쓰다</div>
+      </div>
+
+      <div class="hint-bar">
+        <button class="hint-btn" id="hint-btn-past">💡 과거형 힌트</button>
+        <button class="hint-btn" id="hint-btn-pp">💡 과거분사 힌트</button>
+        <div class="hint-text" id="hint-text"></div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-group">
+          <div class="input-label">PAST TENSE — 과거형</div>
+          <input class="verb-input" id="input-past" type="text" placeholder="과거형을 입력하세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="input-group">
+          <div class="input-label">PAST PARTICIPLE — 과거분사</div>
+          <input class="verb-input" id="input-pp" type="text" placeholder="과거분사를 입력하세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+      </div>
+
+      <button class="check-btn" id="check-btn">확인 →</button>
+      <div class="feedback-row" id="feedback"></div>
+      <button class="next-btn" id="next-btn">다음 행성으로 →</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- UPGRADE -->
+<div class="overlay" id="upgrade-overlay">
+  <div class="upgrade-box">
+    <div class="particles" id="particles"></div>
+    <div class="up-label">NEW PLANET!</div>
+    <span class="up-planet" id="up-planet">🪐</span>
+    <div class="up-name" id="up-name"></div>
+    <div class="up-desc" id="up-desc"></div>
+    <button class="up-btn" id="up-btn">계속 탐사하기 →</button>
+  </div>
+</div>
+
+<!-- WRONG ANSWER POPUP -->
+<div class="overlay" id="wrong-popup">
+  <div class="wrong-popup-box">
+    <div class="wp-label">WRONG ANSWER</div>
+    <div class="wp-verb" id="wp-verb">write</div>
+    <div class="wp-row">
+      <div class="wp-item">
+        <div class="wp-lbl">PAST TENSE</div>
+        <div class="wp-ans" id="wp-past">wrote</div>
+      </div>
+      <div class="wp-divider">+</div>
+      <div class="wp-item">
+        <div class="wp-lbl">PAST PARTICIPLE</div>
+        <div class="wp-ans" id="wp-pp">written</div>
+      </div>
+    </div>
+    <div class="wp-mean" id="wp-mean">쓰다</div>
+  </div>
+</div>
+
+<!-- MISSION COMPLETE -->
+<div class="overlay" id="mission-overlay">
+  <div class="mission-box">
+    <span class="mc-glow" id="mc-glow">🏆</span>
+    <div class="mc-label" id="mc-label">MISSION COMPLETE</div>
+    <div class="mc-title" id="mc-title">탐사 완료!</div>
+    <div class="mc-stars" id="mc-stars">⭐⭐⭐⭐⭐</div>
+    <div class="mc-score" id="mc-score">20</div>
+    <div class="mc-total" id="mc-total">/ 20 정답</div>
+    <div class="mc-rank-box">
+      <div class="mc-rank" id="mc-rank">🏆 은하 탐험가</div>
+      <div class="mc-rank-desc" id="mc-rank-desc"></div>
+    </div>
+    <div class="mc-wrong-wrap" id="mc-wrong-wrap" style="display:none">
+      <div class="mc-wrong-title">🔍 틀린 단어 복습</div>
+      <div id="mc-wrong-list"></div>
+    </div>
+    <div class="mc-btns">
+      <button class="mc-btn-home" id="mc-home">🏠 홈으로</button>
+      <button class="mc-btn-again" id="mc-again">🪐 다시 탐사!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ── STARS ── */
+(function () {
+  const c = document.getElementById('starCanvas'), ctx = c.getContext('2d');
+  let stars = [];
+  function resize() {
+    c.width = innerWidth; c.height = innerHeight; stars = [];
+    for (let i = 0; i < 160; i++) {
+      stars.push({ x: Math.random()*c.width, y: Math.random()*c.height,
+        r: Math.random()*1.4+0.2, o: Math.random()*0.5+0.1,
+        s: (Math.random()*0.25+0.05)*(Math.random()<0.5?1:-1),
+        hue: Math.random() < 0.2 ? 280 : 210 });
+    }
+  }
+  function draw() {
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s => {
+      s.o += s.s*0.007; if (s.o>0.7||s.o<0.08) s.s*=-1;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle = `hsla(${s.hue},60%,80%,${s.o})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  addEventListener('resize',resize); resize(); draw();
+})();
+
+/* ── DATA ── */
+const VERBS = [
+  {b:'write', p:'wrote',  pp:'written',  m:'쓰다'},
+  {b:'speak', p:'spoke',  pp:'spoken',   m:'말하다'},
+  {b:'begin', p:'began',  pp:'begun',    m:'시작하다'},
+  {b:'break', p:'broke',  pp:'broken',   m:'깨다'},
+  {b:'choose',p:'chose',  pp:'chosen',   m:'선택하다'},
+  {b:'drive', p:'drove',  pp:'driven',   m:'운전하다'},
+  {b:'fall',  p:'fell',   pp:'fallen',   m:'떨어지다'},
+  {b:'fly',   p:'flew',   pp:'flown',    m:'날다'},
+  {b:'forget',p:'forgot', pp:'forgotten',m:'잊다'},
+  {b:'freeze',p:'froze',  pp:'frozen',   m:'얼다'},
+  {b:'get',   p:'got',    pp:'gotten',   m:'얻다'},
+  {b:'give',  p:'gave',   pp:'given',    m:'주다'},
+  {b:'go',    p:'went',   pp:'gone',     m:'가다'},
+  {b:'grow',  p:'grew',   pp:'grown',    m:'자라다'},
+  {b:'hide',  p:'hid',    pp:'hidden',   m:'숨기다'},
+  {b:'know',  p:'knew',   pp:'known',    m:'알다'},
+  {b:'lie',   p:'lay',    pp:'lain',     m:'눕다'},
+  {b:'ride',  p:'rode',   pp:'ridden',   m:'타다'},
+  {b:'ring',  p:'rang',   pp:'rung',     m:'울리다'},
+  {b:'rise',  p:'rose',   pp:'risen',    m:'올라가다'},
+  {b:'see',   p:'saw',    pp:'seen',     m:'보다'},
+  {b:'shake', p:'shook',  pp:'shaken',   m:'흔들다'},
+  {b:'sing',  p:'sang',   pp:'sung',     m:'노래하다'},
+  {b:'sink',  p:'sank',   pp:'sunk',     m:'가라앉다'},
+  {b:'steal', p:'stole',  pp:'stolen',   m:'훔치다'},
+  {b:'swim',  p:'swam',   pp:'swum',     m:'수영하다'},
+  {b:'take',  p:'took',   pp:'taken',    m:'취하다'},
+  {b:'throw', p:'threw',  pp:'thrown',   m:'던지다'},
+  {b:'wake',  p:'woke',   pp:'woken',    m:'잠에서 깨다'},
+  {b:'wear',  p:'wore',   pp:'worn',     m:'입다'},
+  {b:'draw',  p:'drew',   pp:'drawn',    m:'그리다'},
+  {b:'drink', p:'drank',  pp:'drunk',    m:'마시다'},
+  {b:'eat',   p:'ate',    pp:'eaten',    m:'먹다'},
+  {b:'bite',  p:'bit',    pp:'bitten',   m:'물다'},
+  {b:'blow',  p:'blew',   pp:'blown',    m:'불다'},
+  {b:'do',    p:'did',    pp:'done',     m:'하다'},
+  {b:'forgive',p:'forgave',pp:'forgiven',m:'용서하다'},
+  {b:'swear', p:'swore',  pp:'sworn',    m:'맹세하다'},
+  {b:'show',  p:'showed', pp:'shown',    m:'보여주다'},
+  {b:'arise', p:'arose',  pp:'arisen',   m:'일어나다'},
+  {b:'lay',   p:'laid',   pp:'laid',     m:'놓다, 눕히다'},
+  {b:'lead',  p:'led',    pp:'led',      m:'이끌다'},
+  {b:'mean',  p:'meant',  pp:'meant',    m:'의미하다'},
+  {b:'shine', p:'shone',  pp:'shone',    m:'빛나다'},
+  {b:'shoot', p:'shot',   pp:'shot',     m:'쏘다'},
+  {b:'stand', p:'stood',  pp:'stood',    m:'서 있다'},
+  {b:'lend',  p:'lent',   pp:'lent',     m:'빌려주다'},
+  {b:'seek',  p:'sought', pp:'sought',   m:'찾다'},
+  {b:'strike',p:'struck', pp:'struck',   m:'치다'},
+  {b:'tear',  p:'tore',   pp:'torn',     m:'찢다'},
+];
+
+const PLANETS = [
+  { name:'미지의 행성', e:'🌑', desc:'첫 행성을 발견했어요! 탐사를 계속해요.' },
+  { name:'적색 행성',   e:'🔴', desc:'뜨거운 암석 행성 발견! 어휘력이 늘고 있어요.' },
+  { name:'수정 행성',   e:'🔵', desc:'신비로운 수정 행성! 실력이 크게 늘었어요.' },
+  { name:'황금 행성',   e:'🟡', desc:'황금빛 행성 도달! 불규칙 동사 마스터에 가까워요.' },
+  { name:'은하 코어',   e:'🌟', desc:'은하 중심부 도달! 당신은 진정한 탐험가입니다!' },
+];
+
+const RANKS = [
+  { min:1.0,  rank:'🏆 은하 탐험가',   desc:'완벽해요! 중급 불규칙 동사를 완전히 정복했어요!' },
+  { min:0.85, rank:'🚀 행성 탐사관',   desc:'훌륭해요! 거의 완벽한 실력이에요.' },
+  { min:0.7,  rank:'⭐ 우주 항법사',   desc:'잘했어요! 조금만 더 연습하면 마스터!' },
+  { min:0.5,  rank:'🌑 견습 탐사관',   desc:'절반 정복! 틀린 단어를 복습하고 재도전해봐요.' },
+  { min:0,    rank:'☄️ 훈련 중',        desc:'아직 연습이 더 필요해요. 포기하지 마세요!' },
+];
+
+const Q_OPTIONS = [10, 15, 20, 30];
+const MAX_HINTS = 3;
+
+const OK_MSG  = ['정답! 🎯','완벽해요! ✨','행성 정복! 🪐','은하 탐험가! 🌟','정확해요! 💫'];
+const HALF_MSG = ['힌트 사용 — 절반 점수 ⚡','힌트 덕분에 정답! 💡'];
+const NG_MSG  = ['오답이에요 😅','에너지 손실! ⚡','아쉬워요...','다시 집중해봐요!'];
+
+/* ── STATE ── */
+let TOTAL = 20;
+let queue, idx, hp, stars, answered, wrongList, upgradePending;
+let hintsLeft, hintUsedPast, hintUsedPP;
+
+const $ = id => document.getElementById(id);
+const rnd = arr => arr[0|Math.random()*arr.length];
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]]}return r}
+
+function norm(s){ return s.trim().toLowerCase().replace(/[^a-z]/g,''); }
+function checkAnswer(input, correct){
+  const variants = correct.split('/').map(norm);
+  return variants.includes(norm(input));
+}
+
+/* ── Q-COUNT BUTTONS ── */
+(function(){
+  const row = $('qcount-row');
+  Q_OPTIONS.forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'qcount-btn' + (n===20?' active':'');
+    btn.textContent = n + '문제';
+    btn.onclick = () => {
+      TOTAL = n;
+      document.querySelectorAll('.qcount-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    row.appendChild(btn);
+  });
+})();
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function startGame(){
+  queue = shuffle([...VERBS]).slice(0, TOTAL);
+  idx=0; hp=5; stars=0; answered=false; wrongList=[]; upgradePending=false;
+  hintsLeft = MAX_HINTS;
+  showScreen('screen-game');
+  renderHUD(); renderPlanets(); loadQ();
+}
+
+/* ── HUD ── */
+function renderHUD(){
+  const row=$('hp-row'); row.innerHTML='';
+  for(let i=0;i<5;i++){
+    const s=document.createElement('span');
+    s.className='hp'+(i>=hp?' dead':'');
+    s.textContent='❤️'; row.appendChild(s);
+  }
+  $('prog-label').textContent = idx+' / '+TOTAL;
+  $('prog-fill').style.width = (idx/TOTAL*100)+'%';
+  $('score-pill').textContent = '⭐ '+stars;
+  $('q-hint-count').textContent = '💡 힌트 '+hintsLeft+'개';
+}
+
+/* ── PLANET BAR ── */
+function renderPlanets(){
+  const bar=$('planet-bar'); bar.innerHTML='';
+  const upgPer = Math.max(1, Math.floor(TOTAL/5));
+  const stage = Math.min(Math.floor(stars/upgPer), 4);
+  PLANETS.forEach((p,i)=>{
+    const slot=document.createElement('div');
+    slot.className='planet-slot'+(i===stage?' cur':'');
+    const scale=i===stage?1.75:0.5+i*0.1;
+    const opacity=i<=stage?1:0.12;
+    const glow=i===stage?`drop-shadow(0 0 14px rgba(160,100,255,0.9))`:'none';
+    const em=document.createElement('div');
+    em.className='planet-emoji';
+    em.style.cssText=`font-size:${26*scale}px;opacity:${opacity};filter:${glow};`;
+    em.textContent=p.e; slot.appendChild(em);
+    const lbl=document.createElement('div');
+    lbl.className='planet-name';
+    lbl.textContent=i===stage?p.name:''; slot.appendChild(lbl);
+    if(i===stage){
+      const dr=document.createElement('div'); dr.className='dot-row';
+      const filled=(stars>0&&stars%upgPer===0)?upgPer:stars%upgPer;
+      for(let d=0;d<Math.min(upgPer,5);d++){
+        const dot=document.createElement('div');
+        dot.className='dot'+(d<filled?' on':'');
+        dr.appendChild(dot);
+      }
+      slot.appendChild(dr);
+    }
+    bar.appendChild(slot);
+  });
+}
+
+/* ── LOAD Q ── */
+function loadQ(){
+  if(idx>=TOTAL){showMissionComplete();return;}
+  answered=false; hintUsedPast=false; hintUsedPP=false;
+  const v=queue[idx];
+  $('q-num').textContent='Q'+(idx+1)+' / '+TOTAL;
+  $('verb-word').textContent=v.b;
+  $('verb-meaning').textContent=v.m;
+  $('feedback').textContent=''; $('feedback').style.color='#9977bb';
+  $('hint-text').textContent='';
+  $('next-btn').style.display='none';
+  $('check-btn').disabled=false;
+  $('check-btn').textContent='확인 →';
+
+  const ip=$('input-past'), ipp=$('input-pp');
+  ip.value=''; ipp.value='';
+  setInputReset(ip); setInputReset(ipp);
+  ip.disabled=false; ipp.disabled=false;
+
+  const hbp=$('hint-btn-past'), hbpp=$('hint-btn-pp');
+  hbp.disabled=hintsLeft<=0; hbpp.disabled=hintsLeft<=0;
+  hbp.textContent='💡 과거형 힌트'; hbpp.textContent='💡 과거분사 힌트';
+
+  renderHUD(); renderPlanets();
+  setTimeout(()=>ip.focus(),100);
+
+  ip.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();ipp.focus();}};
+  ipp.onkeydown=e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      e.stopImmediatePropagation(); // document 핸들러까지 전파 완전 차단
+      checkAns();
+    }
+  };
+}
+
+/* ── HINT ── */
+function showHint(type){
+  if(hintsLeft<=0||answered) return;
+  const v=queue[idx];
+  hintsLeft--;
+  if(type==='past'){
+    hintUsedPast=true;
+    $('hint-btn-past').disabled=true;
+    $('hint-btn-past').textContent='✓ 과거형: '+v.p;
+    $('hint-text').textContent='';
+    $('input-past').placeholder=v.p;
+  } else {
+    hintUsedPP=true;
+    $('hint-btn-pp').disabled=true;
+    $('hint-btn-pp').textContent='✓ 과거분사: '+v.pp;
+    $('hint-text').textContent='';
+    $('input-pp').placeholder=v.pp;
+  }
+  $('hint-btn-past').disabled=hintsLeft<=0||hintUsedPast;
+  $('hint-btn-pp').disabled=hintsLeft<=0||hintUsedPP;
+  renderHUD();
+}
+
+/* ── CHECK ── */
+const STYLE_BASE    = 'width:100%;padding:13px 14px;border-radius:10px;font-size:18px;font-weight:700;font-family:inherit;outline:none;letter-spacing:1px;';
+const STYLE_CORRECT = STYLE_BASE + 'background:#051a10;border:2px solid #22aa66;color:#44ffaa;-webkit-text-fill-color:#44ffaa;';
+const STYLE_WRONG   = STYLE_BASE + 'background:#1a0508;border:2px solid #aa3333;color:#ff8899;-webkit-text-fill-color:#ff8899;';
+const STYLE_RESET   = STYLE_BASE + 'background:#0d0520;border:2px solid #2a1540;color:#ffffff;-webkit-text-fill-color:#ffffff;';
+
+function setInputOk(el)   { el.setAttribute('style', STYLE_CORRECT); }
+function setInputNg(el)   { el.setAttribute('style', STYLE_WRONG); }
+function setInputReset(el){ el.setAttribute('style', STYLE_RESET); }
+
+function checkAns(){
+  if(answered) return;
+  justChecked = true; // 이 Enter가 전역 핸들러로 올라가지 않도록
+  const v=queue[idx];
+  const pastOk = checkAnswer($('input-past').value, v.p);
+  const ppOk   = checkAnswer($('input-pp').value, v.pp);
+  const allOk  = pastOk && ppOk;
+  const hintUsed = hintUsedPast || hintUsedPP;
+  answered=true;
+  $('check-btn').disabled=true;
+  $('input-past').disabled=true;
+  $('input-pp').disabled=true;
+  $('hint-btn-past').disabled=true;
+  $('hint-btn-pp').disabled=true;
+
+  if(allOk){
+    setInputOk($('input-past')); setInputOk($('input-pp'));
+    const earned = hintUsed ? 0.5 : 1;
+    stars += earned;
+    const fb=$('feedback');
+    fb.textContent = hintUsed ? rnd(HALF_MSG) : rnd(OK_MSG);
+    fb.style.color  = hintUsed ? '#ffaa44' : '#44ddaa';
+    renderHUD(); renderPlanets();
+    const upgPer=Math.max(1,Math.floor(TOTAL/5));
+    if(Math.floor(stars/upgPer) > Math.floor((stars-earned)/upgPer) && Math.floor(stars/upgPer)<=4){
+      upgradePending=true;
+    }
+    setTimeout(()=>nextQ(), 600);
+  } else {
+    if(!pastOk){ setInputNg($('input-past')); } else { setInputOk($('input-past')); }
+    if(!ppOk){   setInputNg($('input-pp'));   } else { setInputOk($('input-pp'));   }
+    hp=Math.max(0,hp-1); wrongList.push(v);
+    const fb=$('feedback');
+    fb.textContent='정답: '+v.p+' / '+v.pp; fb.style.color='#ff8899';
+    renderHUD();
+    document.activeElement && document.activeElement.blur();
+    // 오답 팝업 표시
+    showWrongPopup(v);
+    setTimeout(()=>{
+      $('wrong-popup').classList.remove('show');
+      if(hp===0){ showMissionComplete(); return; }
+      nextQ();
+    }, 1200);
+  }
+}
+
+function showWrongPopup(v){
+  $('wp-verb').textContent = v.b;
+  $('wp-past').textContent = v.p;
+  $('wp-pp').textContent   = v.pp;
+  $('wp-mean').textContent = v.m;
+  $('wrong-popup').classList.add('show');
+}
+
+/* ── NEXT ── */
+function nextQ(){
+  idx++; renderHUD();
+  if(upgradePending){
+    upgradePending=false;
+    const upgPer=Math.max(1,Math.floor(TOTAL/5));
+    showUpgrade(Math.min(Math.floor(stars/upgPer),4));
+  } else loadQ();
+}
+
+/* ── UPGRADE ── */
+function showUpgrade(stage){
+  const p=PLANETS[stage];
+  $('up-planet').textContent=p.e;
+  $('up-name').textContent=p.name+' 발견!';
+  $('up-desc').textContent=p.desc;
+  const pc=$('particles'); pc.innerHTML='';
+  const cols=['#bb66ff','#9933cc','#ddaaff','#ffaa44','#ff5599','#ffffff'];
+  for(let i=0;i<32;i++){
+    const el=document.createElement('div'); el.className='particle';
+    const a=(i/32)*360, d=60+Math.random()*100;
+    el.style.cssText=`left:50%;top:40%;background:${cols[i%cols.length]};--tx:${Math.cos(a*Math.PI/180)*d}px;--ty:${Math.sin(a*Math.PI/180)*d}px;animation-delay:${Math.random()*0.15}s`;
+    pc.appendChild(el);
+  }
+  $('upgrade-overlay').classList.add('show');
+  // 0.8초 후 자동 닫고 다음 문제로
+  setTimeout(()=>{
+    $('upgrade-overlay').classList.remove('show');
+    loadQ();
+  }, 800);
+}
+
+/* ── MISSION COMPLETE ── */
+function showMissionComplete(){
+  const pct = stars/TOTAL;
+  const starCount = pct>=1?5:pct>=0.8?4:pct>=0.6?3:pct>=0.4?2:1;
+  const rank = RANKS.find(r=>pct>=r.min);
+  const success = hp>0;
+  $('mc-glow').textContent   = success?'🏆':'💫';
+  $('mc-label').textContent  = success?'MISSION COMPLETE':'MISSION FAILED';
+  $('mc-title').textContent  = success?'탐사 완료! 🎉':'탐사 실패...';
+  $('mc-stars').textContent  = '⭐'.repeat(starCount)+'☆'.repeat(5-starCount);
+  $('mc-score').textContent  = stars % 1 === 0 ? stars : stars.toFixed(1);
+  $('mc-total').textContent  = '/ '+TOTAL+' 정답  ('+Math.round(pct*100)+'%)';
+  $('mc-rank').textContent       = rank.rank;
+  $('mc-rank-desc').textContent  = rank.desc;
+  if(wrongList.length>0){
+    $('mc-wrong-wrap').style.display='block';
+    $('mc-wrong-list').innerHTML=wrongList.map(v=>
+      `<div class="wi">
+        <span class="wi-b">${v.b}</span>
+        <span class="wi-arr">→</span>
+        <span class="wi-a">${v.p} / ${v.pp}</span>
+        <span class="wi-m">${v.m}</span>
+      </div>`
+    ).join('');
+  } else { $('mc-wrong-wrap').style.display='none'; }
+  $('mission-overlay').classList.add('show');
+}
+
+/* ── EVENTS ── */
+$('start-btn').addEventListener('click', startGame);
+$('check-btn').addEventListener('click', checkAns);
+$('next-btn').addEventListener('click', nextQ);
+$('hint-btn-past').addEventListener('click', ()=>showHint('past'));
+$('hint-btn-pp').addEventListener('click', ()=>showHint('pp'));
+// 업그레이드 팝업 자동 닫기 (showUpgrade에서 처리)
+$('mc-home').addEventListener('click', ()=>{ $('mission-overlay').classList.remove('show'); showScreen('screen-start'); });
+$('mc-again').addEventListener('click', ()=>{ $('mission-overlay').classList.remove('show'); startGame(); });
+
+/* ── 전역 Enter 키 핸들러 ── */
+// checkAns() 직후 Enter 이중 실행 방지용 플래그
+let justChecked = false;
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  // 입력창 포커스 중이면 onkeydown이 처리하므로 무시
+  const active = document.activeElement;
+  if (active && (active.id === 'input-past' || active.id === 'input-pp')) return;
+  // checkAns() 방금 호출됐으면 이 Enter 무시 (같은 keydown 이벤트 버블링)
+  if (justChecked) { justChecked = false; return; }
+  if ($('upgrade-overlay').classList.contains('show')) {
+    $('upgrade-overlay').classList.remove('show'); loadQ(); return;
+  }
+  if ($('mission-overlay').classList.contains('show')) {
+    $('mission-overlay').classList.remove('show'); startGame(); return;
+  }
+  // answered=true이고 next-btn이 보일 때만 (확인 후 대기 상태)
+  const nb = $('next-btn');
+  if (nb.style.display !== 'none' && answered) { nb.click(); return; }
+});
+</script>
+</body>
+</html>
